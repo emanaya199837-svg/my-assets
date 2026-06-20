@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///C:/Users/emana/Downloads/gemini-code-1781946920844.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資産管理システム Pro</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="資産管理">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <script src="./資産管理システム_files/chart.js.ダウンロード"></script>
+    <link rel="stylesheet" href="./資産管理システム_files/all.min.css">
+    <style>
+        :root {
+            --bg-sidebar: #1e2530;
+            --bg-main: #0f131a;
+            --bg-card: #161c24;
+            --bg-input: #1f2632;
+            --text-main: #ffffff;
+            --text-muted: #7d8b9b;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f59e0b;
+            --border-color: #232d3d;
+            --hover-sidebar: #263143;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- ヘッダー（スマホ用メニューボタン） --- */
+        .mobile-header { display: none; width: 100%; background-color: var(--bg-sidebar); padding: 15px 20px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); position: fixed; top: 0; left: 0; z-index: 90; }
+        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 1.4rem; cursor: pointer; }
+
+        /* --- サイドバー --- */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: transform 0.3s ease; z-index: 100; }
+        .logo-area { padding: 24px; font-size: 1.25rem; font-weight: bold; border-bottom: 1px solid var(--border-color); letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center; }
+        .close-sidebar { display: none; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .menu-list { list-style: none; padding: 15px 0; flex-grow: 1; }
+        .menu-item { padding: 14px 24px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+        .menu-item i { width: 20px; font-size: 1.1rem; text-align: center; }
+        .menu-item:hover { background-color: var(--hover-sidebar); color: var(--text-main); }
+        .menu-item.active { background-color: var(--hover-sidebar); color: var(--accent-green); border-left: 4px solid var(--accent-green); padding-left: 20px; }
+
+        /* --- メインコンテンツ --- */
+        .main-content { flex-grow: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 1.5rem; font-weight: bold; }
+        
+        /* 共通ボタン */
+        .btn { background-color: var(--accent-green); color: #fff; border: none; padding: 12px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn:hover { opacity: 0.9; }
+        .btn-orange { background-color: var(--accent-orange); }
+        .btn-secondary { background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); }
+
+        /* --- 画面制御 --- */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* --- 各種カード --- */
+        .total-box { background-color: var(--bg-card); border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .total-box-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
+        .total-box-amount { font-size: 2.25rem; font-weight: bold; color: var(--accent-green); }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } }
+        .card { background-color: var(--bg-card); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); margin-bottom: 24px; }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; }
+
+        /* 資産リスト表示用 */
+        .recent-list { display: flex; flex-direction: column; gap: 12px; }
+        .recent-item { background-color: var(--bg-sidebar); border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .recent-name { font-weight: bold; margin-bottom: 4px; }
+        .recent-cat { font-size: 0.8rem; color: var(--text-muted); }
+        .recent-val { font-weight: bold; font-size: 1.05rem; }
+
+        /* グラフコンテナ */
+        .chart-box { display: flex; justify-content: center; align-items: center; min-height: 250px; }
+        .sim-chart-box { height: 260px; width: 100%; margin-top: 20px; }
+
+        /* --- テーブル --- */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .filter-area { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
+        select, input { background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; outline: none; }
+        select:focus, input:focus { border-color: var(--accent-green); }
+        .asset-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; white-space: nowrap; }
+        .asset-table th, .asset-table td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+        .asset-table th { color: var(--text-muted); font-weight: normal; }
+        .asset-table tr:hover { background-color: rgba(255,255,255,0.02); }
+        .action-btns { display: flex; gap: 16px; color: var(--text-muted); font-size: 1.1rem; }
+        .action-btns i { cursor: pointer; transition: color 0.1s; padding: 5px; }
+
+        /* --- カテゴリ管理 --- */
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+        .category-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .cat-info { display: flex; align-items: center; gap: 12px; }
+        .cat-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .cat-text { display: flex; flex-direction: column; }
+        .cat-name { font-weight: bold; }
+        .cat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* --- シミュレーション画面 --- */
+        .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 0.85rem; color: var(--text-muted); }
+        .sim-result-box { margin-top: 24px; padding: 16px; background-color: rgba(255,255,255,0.02); border-radius: 8px; font-weight: bold; font-size: 1.1rem; text-align: center; border: 1px solid var(--border-color); line-height: 1.6; }
+
+        /* --- モーダル --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 200; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 16px; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 4px; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+
+        /* 📱 モバイル用レスポンシブコード */
+        @media (max-width: 768px) {
+            body { flex-direction: column; padding-top: 60px; }
+            .mobile-header { display: flex; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+            .sidebar.open { transform: translateX(0); }
+            .close-sidebar { display: block; }
+            .main-content { padding: 20px; }
+            .page-header { flex-direction: row; align-items: center; }
+            .total-box-amount { font-size: 1.8rem; }
+            .chart-box { min-height: 200px; }
+            .modal-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-header">
+        <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div style="font-weight: bold; font-size: 1.1rem;">資産管理 Pro</div>
+        <div style="width: 24px;"></div> </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <span>資産管理</span>
+            <button class="close-sidebar" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item" onclick="switchPage(&#39;dashboard&#39;, this)"><i class="fa-solid fa-chart-pie"></i>ダッシュボード</li>
+            <li class="menu-item" onclick="switchPage(&#39;assets-list&#39;, this)"><i class="fa-solid fa-wallet"></i>資産一覧</li>
+            <li class="menu-item" onclick="switchPage(&#39;history&#39;, this)"><i class="fa-solid fa-chart-line"></i>資産推移</li>
+            <li class="menu-item" onclick="switchPage(&#39;categories&#39;, this)"><i class="fa-solid fa-tags"></i>カテゴリ</li>
+            <li class="menu-item active" onclick="switchPage(&#39;simulation&#39;, this)"><i class="fa-solid fa-calculator"></i>シミュレーション</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+
+        <div id="page-dashboard" class="page">
+            <div class="page-header"><h1 class="page-title">ダッシュボード</h1></div>
+            <div class="total-box">
+                <div class="total-box-label">総資産額</div>
+                <div class="total-box-amount" id="db-total-amount">¥ 47,290,000</div>
+            </div>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2 class="card-title">カテゴリ別資産配分</h2>
+                    <div class="chart-box"><canvas id="pieChart" width="736" height="300" style="display: block; box-sizing: border-box; height: 300px; width: 736px;"></canvas></div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">最近の資産</h2>
+                    <div class="recent-list" id="db-recent-list"><div class="recent-item"><div><div class="recent-name">日本国債 10年</div><div class="recent-cat">債券</div></div><div class="recent-val" style="color: #ef4444">- ¥10,000</div></div><div class="recent-item"><div><div class="recent-name">eMAXIS Slim 全世界株式</div><div class="recent-cat">投資信託</div></div><div class="recent-val" style="color: var(--accent-green)">¥2,800,000</div></div><div class="recent-item"><div><div class="recent-name">Ethereum</div><div class="recent-cat">暗号資産</div></div><div class="recent-val" style="color: var(--accent-green)">¥500,000</div></div><div class="recent-item"><div><div class="recent-name">Bitcoin</div><div class="recent-cat">暗号資産</div></div><div class="recent-val" style="color: var(--accent-green)">¥1,500,000</div></div><div class="recent-item"><div><div class="recent-name">東京都 マンション</div><div class="recent-cat">不動産</div></div><div class="recent-val" style="color: var(--accent-green)">¥35,000,000</div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-assets-list" class="page">
+            <div class="page-header">
+                <h1 class="page-title">資産一覧</h1>
+                <button class="btn" onclick="openModal()"><i class="fa-solid fa-plus"></i> 追加</button>
+            </div>
+            <div class="card">
+                <div class="filter-area">
+                    <span>フィルター:</span>
+                    <select id="cat-filter" onchange="renderAssetTable()"><option value="すべて">すべて</option><option value="債券">債券</option><option value="投資信託">投資信託</option><option value="暗号資産">暗号資産</option><option value="不動産">不動産</option><option value="株式">株式</option><option value="現金・預金">現金・預金</option></select>
+                </div>
+                <div class="table-responsive">
+                    <table class="asset-table">
+                        <thead>
+                            <tr>
+                                <th>名前</th>
+                                <th>カテゴリ</th>
+                                <th>金額</th>
+                                <th>メモ</th>
+                                <th style="width: 80px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"><tr><td>日本国債 10年</td><td>債券</td><td style="color: #ef4444; font-weight: bold;">- ¥10,000</td><td style="color: var(--text-muted)">個人向け国債</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(1)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(1)"></i></div></td></tr><tr><td>eMAXIS Slim 全世界株式</td><td>投資信託</td><td style="color: var(--accent-green); font-weight: bold;">¥2,800,000</td><td style="color: var(--text-muted)">積立NISA</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(2)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(2)"></i></div></td></tr><tr><td>Ethereum</td><td>暗号資産</td><td style="color: var(--accent-green); font-weight: bold;">¥500,000</td><td style="color: var(--text-muted)">1.2 ETH</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(3)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(3)"></i></div></td></tr><tr><td>Bitcoin</td><td>暗号資産</td><td style="color: var(--accent-green); font-weight: bold;">¥1,500,000</td><td style="color: var(--text-muted)">0.15 BTC</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(4)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(4)"></i></div></td></tr><tr><td>東京都 マンション</td><td>不動産</td><td style="color: var(--accent-green); font-weight: bold;">¥35,000,000</td><td style="color: var(--text-muted)">投資用ワンルーム</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(5)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(5)"></i></div></td></tr><tr><td>Apple Inc.</td><td>株式</td><td style="color: var(--accent-green); font-weight: bold;">¥800,000</td><td style="color: var(--text-muted)">50株保有</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(6)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(6)"></i></div></td></tr><tr><td>トヨタ自動車 株式</td><td>株式</td><td style="color: var(--accent-green); font-weight: bold;">¥1,200,000</td><td style="color: var(--text-muted)">100株保有</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(7)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(7)"></i></div></td></tr><tr><td>楽天銀行 定期預金</td><td>現金・預金</td><td style="color: var(--accent-green); font-weight: bold;">¥2,000,000</td><td style="color: var(--text-muted)">緊急資金</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(8)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(8)"></i></div></td></tr><tr><td>三菱UFJ銀行 普通預金</td><td>現金・預金</td><td style="color: var(--accent-green); font-weight: bold;">¥3,500,000</td><td style="color: var(--text-muted)">生活費口座</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(9)"></i><i class="fa-solid fa-trash" onclick="deleteAsset(9)"></i></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-history" class="page">
+            <div class="page-header"><h1 class="page-title">資産推移</h1></div>
+            <div class="card">
+                <h2 class="card-title">月別資産推移</h2>
+                <div style="height: 260px; width: 100%;"><canvas id="lineChart" width="1546" height="260" style="display: block; box-sizing: border-box; height: 260px; width: 1546px;"></canvas></div>
+            </div>
+            <div class="card">
+                <h2 class="card-title">履歴一覧</h2>
+                <div class="recent-list" id="history-list"><div class="recent-item"><span style="font-weight: bold;">2026/06</span><span style="color: var(--accent-green); font-weight: bold;">¥ 47,290,000</span></div><div class="recent-item"><span style="font-weight: bold;">2026/05</span><span style="color: var(--accent-green); font-weight: bold;">¥ 46,800,000</span></div><div class="recent-item"><span style="font-weight: bold;">2026/03</span><span style="color: var(--accent-green); font-weight: bold;">¥ 45,000,000</span></div><div class="recent-item"><span style="font-weight: bold;">2026/01</span><span style="color: var(--accent-green); font-weight: bold;">¥ 44,800,000</span></div><div class="recent-item"><span style="font-weight: bold;">2025/11</span><span style="color: var(--accent-green); font-weight: bold;">¥ 43,500,000</span></div><div class="recent-item"><span style="font-weight: bold;">2025/09</span><span style="color: var(--accent-green); font-weight: bold;">¥ 43,200,000</span></div><div class="recent-item"><span style="font-weight: bold;">2025/07</span><span style="color: var(--accent-green); font-weight: bold;">¥ 42,000,000</span></div></div>
+            </div>
+        </div>
+
+        <div id="page-categories" class="page">
+            <div class="page-header"><h1 class="page-title">カテゴリ管理</h1></div>
+            <div class="category-grid" id="cat-card-grid"><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #22d3ee"></div><div class="cat-text"><span class="cat-name">債券</span><span class="cat-sub">Shield</span></div></div></div><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #ec4899"></div><div class="cat-text"><span class="cat-name">投資信託</span><span class="cat-sub">PieChart</span></div></div></div><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #a855f7"></div><div class="cat-text"><span class="cat-name">暗号資産</span><span class="cat-sub">Bitcoin</span></div></div></div><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #f59e0b"></div><div class="cat-text"><span class="cat-name">不動産</span><span class="cat-sub">Home</span></div></div></div><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #3b82f6"></div><div class="cat-text"><span class="cat-name">株式</span><span class="cat-sub">TrendingUp</span></div></div></div><div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: #10b981"></div><div class="cat-text"><span class="cat-name">現金・預金</span><span class="cat-sub">Wallet</span></div></div></div></div>
+        </div>
+
+        <div id="page-simulation" class="page active">
+            <div class="page-header"><h1 class="page-title">資産シミュレーション</h1></div>
+            
+            <div class="card">
+                <h2 class="card-title" style="color: var(--accent-green);"><i class="fa-solid fa-arrow-trend-up" style="margin-right: 8px;"></i>1. 資産を増やす</h2>
+                <div class="sim-grid">
+                    <div class="input-group"><label>現在の投資資産 (¥)</label><input type="number" id="sim-current-invest" value="0"></div>
+                    <div class="input-group"><label>現在の現金・預金 (¥)</label><input type="number" id="sim-current-cash" value="0"></div>
+                    <div class="input-group"><label>想定利回り (%)</label><input type="number" id="sim-rate" value="5"></div>
+                    <div class="input-group"><label>インフレ率 (%)</label><input type="number" id="sim-inflation" value="2"></div>
+                    <div class="input-group"><label>月々積立額 (¥)</label><input type="number" id="sim-monthly" value="50000"></div>
+                    <div class="input-group"><label>現金貯金額 (¥/月)</label><input type="number" id="sim-cash" value="30000"></div>
+                    <div class="input-group"><label>期間 (年)</label><input type="number" id="sim-years" value="20" min="1" max="50"></div>
+                </div>
+                <button class="btn" style="width: 100%; justify-content: center;" onclick="runSimulation()">シミュレーション実行</button>
+                <div id="sim-result" class="sim-result-box" style="color: var(--accent-green); display: block;">額面総資産: <span>¥ 146,698,553</span><br><small style="color:var(--text-muted)">実質価値: ¥ 98,723,921</small></div>
+                <div class="sim-chart-box" id="sim-chart-container" style="display: block;"><canvas id="simChart" width="1531" height="260" style="display: block; box-sizing: border-box; height: 260px; width: 1531px;"></canvas></div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title" style="color: var(--accent-orange);"><i class="fa-solid fa-arrow-trend-down" style="margin-right: 8px;"></i>2. 資産を切り崩す</h2>
+                <div class="sim-grid">
+                    <div class="input-group"><label>開始時の総資産 (¥)</label><input type="number" id="dec-current" value="0"></div>
+                    <div class="input-group"><label>運用利回り (%)</label><input type="number" id="dec-rate" value="3"></div>
+                    <div class="input-group"><label>想定インフレ率 (%)</label><input type="number" id="dec-inflation" value="2"></div>
+                    <div class="input-group"><label>毎月の切り崩し額 (¥/月)</label><input type="number" id="dec-monthly" value="200000"></div>
+                </div>
+                <button class="btn btn-orange" style="width: 100%; justify-content: center; color: white;" onclick="runDecumulationSimulation()">切り崩しシミュレーション実行</button>
+                <div id="dec-result" class="sim-result-box" style="color: var(--accent-orange); display: block;">底を突くまで: 22年 4ヶ月</div>
+                <div class="sim-chart-box" id="dec-chart-container" style="display: block;"><canvas id="decChart" width="1531" height="260" style="display: block; box-sizing: border-box; height: 260px; width: 1531px;"></canvas></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal" id="asset-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-headline">新しい資産の追加</div>
+            <div class="input-group"><label>資産名</label><input type="text" id="form-name" placeholder="例: トヨタ自動車"></div>
+            <div class="input-group"><label>カテゴリ</label><select id="form-category"><option value="債券">債券</option><option value="投資信託">投資信託</option><option value="暗号資産">暗号資産</option><option value="不動産">不動産</option><option value="株式">株式</option><option value="現金・預金">現金・預金</option></select></div>
+            <div class="input-group"><label>金額 (¥)</label><input type="number" id="form-amount" placeholder="例: 1200000"></div>
+            <div class="input-group"><label>メモ</label><input type="text" id="form-memo" placeholder="例: 100株保有"></div>
+            <div class="modal-btns">
+                <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                <button class="btn" onclick="saveAsset()">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 固定初期データ
+        const defaultCategories = [
+            { name: "債券", color: "#22d3ee", sub: "Shield" },
+            { name: "投資信託", color: "#ec4899", sub: "PieChart" },
+            { name: "暗号資産", color: "#a855f7", sub: "Bitcoin" },
+            { name: "不動産", color: "#f59e0b", sub: "Home" },
+            { name: "株式", color: "#3b82f6", sub: "TrendingUp" },
+            { name: "現金・預金", color: "#10b981", sub: "Wallet" }
+        ];
+
+        const defaultAssets = [
+            { id: 1, name: "日本国債 10年", category: "債券", amount: 1000000, memo: "個人向け国債" },
+            { id: 2, name: "eMAXIS Slim 全世界株式", category: "投資信託", amount: 2800000, memo: "積立NISA" },
+            { id: 3, name: "Ethereum", category: "暗号資産", amount: 500000, memo: "1.2 ETH" },
+            { id: 4, name: "Bitcoin", category: "暗号資産", amount: 1500000, memo: "0.15 BTC" },
+            { id: 5, name: "東京都 マンション", category: "不動産", amount: 35000000, memo: "投資用ワンルーム" },
+            { id: 6, name: "Apple Inc.", category: "株式", amount: 800000, memo: "50株保有" },
+            { id: 7, name: "トヨタ自動車 株式", category: "株式", amount: 1200000, memo: "100株保有" },
+            { id: 8, name: "楽天銀行 定期預金", category: "現金・預金", amount: 2000000, memo: "緊急資金" },
+            { id: 9, name: "三菱UFJ銀行 普通預金", category: "現金・預金", amount: 3500000, memo: "生活費口座" }
+        ];
+
+        const historyData = [
+            { date: "2025/07", total: 42000000 }, { date: "2025/09", total: 43200000 },
+            { date: "2025/11", total: 43500000 }, { date: "2026/01", total: 44800000 },
+            { date: "2026/03", total: 45000000 }, { date: "2026/05", total: 46800000 },
+            { date: "2026/06", total: 47300000 }
+        ];
+
+        let categories = JSON.parse(localStorage.getItem('cats')) || defaultCategories;
+        let assets = JSON.parse(localStorage.getItem('assets')) || defaultAssets;
+        let editId = null; let pieChart = null; let lineChart = null; let simChart = null; let decChart = null;
+
+        // 📱 スマホ用サイドバー開閉
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function switchPage(pageId, element) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            element.classList.add('active');
+            
+            // スマホならメニューを自動で閉じる
+            document.getElementById('sidebar').classList.remove('open');
+
+            if(pageId === 'dashboard') updateDashboardCharts();
+            if(pageId === 'history') updateLineChart();
+        }
+
+        function initSelectors() {
+            const filter = document.getElementById('cat-filter');
+            const formSel = document.getElementById('form-category');
+            filter.innerHTML = '<option value="すべて">すべて</option>';
+            formSel.innerHTML = '';
+            categories.forEach(c => {
+                filter.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                formSel.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+        }
+
+        function dataSync() {
+            localStorage.setItem('cats', JSON.stringify(categories));
+            localStorage.setItem('assets', JSON.stringify(assets));
+            const total = assets.reduce((sum, item) => sum + item.amount, 0);
+            document.getElementById('db-total-amount').innerText = '¥ ' + total.toLocaleString();
+            
+            const cashTotal = assets.filter(a => a.category === '現金・預金').reduce((sum, item) => sum + item.amount, 0);
+            const investTotal = total - cashTotal;
+
+            document.getElementById('sim-current-invest').value = investTotal;
+            document.getElementById('sim-current-cash').value = cashTotal;
+            document.getElementById('dec-current').value = total;
+
+            renderRecentList();
+            renderAssetTable();
+            renderCategoryCards();
+            renderHistoryList(total);
+            if(document.getElementById('page-dashboard').classList.contains('active')) updateDashboardCharts();
+        }
+
+        function renderRecentList() {
+            const container = document.getElementById('db-recent-list'); container.innerHTML = '';
+            assets.slice(0, 5).forEach(item => {
+                const color = item.amount >= 0 ? 'var(--accent-green)' : '#ef4444';
+                container.innerHTML += `<div class="recent-item"><div><div class="recent-name">${item.name}</div><div class="recent-cat">${item.category}</div></div><div class="recent-val" style="color: ${color}">${item.amount >= 0 ? '¥' + item.amount.toLocaleString() : '- ¥' + Math.abs(item.amount).toLocaleString()}</div></div>`;
+            });
+        }
+
+        function renderAssetTable() {
+            const filterVal = document.getElementById('cat-filter').value;
+            const tbody = document.getElementById('table-body'); tbody.innerHTML = '';
+            assets.forEach(item => {
+                if (filterVal !== 'すべて' && item.category !== filterVal) return;
+                const color = item.amount >= 0 ? 'var(--accent-green)' : '#ef4444';
+                tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.category}</td><td style="color: ${color}; font-weight: bold;">${item.amount >= 0 ? '¥' + item.amount.toLocaleString() : '- ¥' + Math.abs(item.amount).toLocaleString()}</td><td style="color: var(--text-muted)">${item.memo}</td><td><div class="action-btns"><i class="fa-solid fa-pen" onclick="openModal(${item.id})"></i><i class="fa-solid fa-trash" onclick="deleteAsset(${item.id})"></i></div></td></tr>`;
+            });
+        }
+
+        function renderCategoryCards() {
+            const container = document.getElementById('cat-card-grid'); container.innerHTML = '';
+            categories.forEach(c => {
+                container.innerHTML += `<div class="category-card"><div class="cat-info"><div class="cat-dot" style="background-color: ${c.color}"></div><div class="cat-text"><span class="cat-name">${c.name}</span><span class="cat-sub">${c.sub}</span></div></div></div>`;
+            });
+        }
+
+        function renderHistoryList(currentTotal) {
+            const container = document.getElementById('history-list'); container.innerHTML = '';
+            const displayHistory = [...historyData]; displayHistory[displayHistory.length - 1].total = currentTotal;
+            [...displayHistory].reverse().forEach(h => {
+                container.innerHTML += `<div class="recent-item"><span style="font-weight: bold;">${h.date}</span><span style="color: var(--accent-green); font-weight: bold;">¥ ${h.total.toLocaleString()}</span></div>`;
+            });
+        }
+
+        function updateDashboardCharts() {
+            const catTotals = {}; categories.forEach(c => catTotals[c.name] = 0);
+            assets.forEach(a => { if(catTotals[a.category] !== undefined) catTotals[a.category] += Math.max(0, a.amount); });
+            const labels = categories.map(c => c.name); const colors = categories.map(c => c.color); const dataVals = categories.map(c => catTotals[c.name]);
+            if (pieChart) { pieChart.data.datasets[0].data = dataVals; pieChart.update(); } else {
+                const ctx = document.getElementById('pieChart').getContext('2d');
+                pieChart = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: window.innerWidth > 768 ? 'right' : 'bottom', labels: { color: '#7d8b9b', font: { size: 11 } } } }, cutout: '65%' } });
+            }
+        }
+
+        function updateLineChart() {
+            const displayHistory = [...historyData]; displayHistory[displayHistory.length - 1].total = assets.reduce((sum, item) => sum + item.amount, 0);
+            const labels = displayHistory.map(h => h.date); const dataVals = displayHistory.map(h => h.total);
+            if(lineChart) { lineChart.data.labels = labels; lineChart.data.datasets[0].data = dataVals; lineChart.update(); } else {
+                const ctx = document.getElementById('lineChart').getContext('2d');
+                lineChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: '総資産推移', data: dataVals, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderWidth: 2, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b' } }, y: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b', callback: value => '¥' + (value/10000) + '万' } } } } });
+            }
+        }
+
+        function runSimulation() {
+            let invest = parseFloat(document.getElementById('sim-current-invest').value) || 0;
+            let cash = parseFloat(document.getElementById('sim-current-cash').value) || 0;
+            const rate = (parseFloat(document.getElementById('sim-rate').value) || 0) / 100;
+            const inflation = (parseFloat(document.getElementById('sim-inflation').value) || 0) / 100;
+            const monthlyInvest = parseFloat(document.getElementById('sim-monthly').value) || 0;
+            const monthlyCash = parseFloat(document.getElementById('sim-cash').value) || 0;
+            const years = parseInt(document.getElementById('sim-years').value) || 1;
+
+            const labels = ['現在']; const nominalData = [invest + cash]; const realData = [invest + cash];
+
+            for (let y = 1; y <= years; y++) {
+                for (let m = 0; m < 12; m++) { invest = (invest + monthlyInvest) * (1 + rate / 12); cash = cash + monthlyCash; }
+                const totalNominal = Math.round(invest + cash); const totalReal = Math.round(totalNominal / Math.pow(1 + inflation, y));
+                labels.push(`${y}年`); nominalData.push(totalNominal); realData.push(totalReal);
+            }
+
+            const resBox = document.getElementById('sim-result');
+            resBox.innerHTML = `額面総資産: <span>¥ ${nominalData[nominalData.length - 1].toLocaleString()}</span><br><small style="color:var(--text-muted)">実質価値: ¥ ${realData[realData.length - 1].toLocaleString()}</small>`;
+            resBox.style.display = 'block'; document.getElementById('sim-chart-container').style.display = 'block';
+
+            if (simChart) simChart.destroy();
+            const ctx = document.getElementById('simChart').getContext('2d');
+            simChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: '額面', data: nominalData, borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 2 }, { label: '実質', borderColor: '#3b82f6', borderDash: [5, 5], data: realData, backgroundColor: 'transparent', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#7d8b9b' } } }, scales: { x: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b' } }, y: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b', callback: v => '¥' + (v/10000) + '万' } } } } });
+        }
+
+        function runDecumulationSimulation() {
+            let current = parseFloat(document.getElementById('dec-current').value) || 0;
+            const rate = (parseFloat(document.getElementById('dec-rate').value) || 0) / 100;
+            const inflation = (parseFloat(document.getElementById('dec-inflation').value) || 0) / 100;
+            let monthlyWithdraw = parseFloat(document.getElementById('dec-monthly').value) || 0;
+
+            const resBox = document.getElementById('dec-result'); resBox.style.display = 'block';
+            if (monthlyWithdraw <= 0) { resBox.innerText = "数値を入力してください。"; return; }
+
+            const labels = ['開始']; const nominalData = [current];
+            let months = 0; const maxYears = 50; let isInfinite = (current * (rate / 12) >= monthlyWithdraw && rate >= inflation);
+
+            for (let y = 1; y <= maxYears; y++) {
+                const activeWithdraw = monthlyWithdraw * Math.pow(1 + inflation, y - 1);
+                for (let m = 0; m < 12; m++) { current = current * (1 + rate / 12); current -= activeWithdraw; months++; if (current <= 0) break; }
+                labels.push(`${y}年`); nominalData.push(Math.max(0, Math.round(current))); if (current <= 0) break;
+            }
+
+            if (isInfinite) {
+                resBox.innerText = `資産が減りません。永久に維持可能です！`;
+                labels.length = 0; nominalData.length = 0; for(let i=0; i<=20; i++) { labels.push(`${i}年`); nominalData.push(parseFloat(document.getElementById('dec-current').value)); }
+            } else {
+                resBox.innerText = `底を突くまで: ${Math.floor(months / 12)}年 ${months % 12}ヶ月`;
+            }
+            document.getElementById('dec-chart-container').style.display = 'block';
+
+            if (decChart) decChart.destroy();
+            const ctx = document.getElementById('decChart').getContext('2d');
+            decChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: '残高', data: nominalData, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderWidth: 2, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b' } }, y: { grid: { color: '#1f2632' }, ticks: { color: '#7d8b9b', callback: v => '¥' + (v/10000) + '万' } } } } });
+        }
+
+        function openModal(id = null) {
+            editId = id; const modal = document.getElementById('asset-modal');
+            if (id) {
+                document.getElementById('modal-headline').innerText = "資産情報の編集"; const target = assets.find(a => a.id === id);
+                document.getElementById('form-name').value = target.name; document.getElementById('form-category').value = target.category; document.getElementById('form-amount').value = target.amount; document.getElementById('form-memo').value = target.memo;
+            } else {
+                document.getElementById('modal-headline').innerText = "新しい資産の追加"; document.getElementById('form-name').value = ''; document.getElementById('form-amount').value = ''; document.getElementById('form-memo').value = '';
+            }
+            modal.classList.add('active');
+        }
+        function closeModal() { document.getElementById('asset-modal').classList.remove('active'); }
+        function saveAsset() {
+            const name = document.getElementById('form-name').value; const category = document.getElementById('form-category').value; const amount = parseInt(document.getElementById('form-amount').value) || 0; const memo = document.getElementById('form-memo').value;
+            if(!name) return alert('資産名を入力してください');
+            if (editId) { assets = assets.map(a => a.id === editId ? { id: editId, name, category, amount, memo } : a); } 
+            else { const newId = assets.length ? Math.max(...assets.map(a => a.id)) + 1 : 1; assets.push({ id: newId, name, category, amount, memo }); }
+            closeModal(); dataSync();
+        }
+        function deleteAsset(id) { if(confirm('削除してもよろしいですか？')) { assets = assets.filter(a => a.id !== id); dataSync(); } }
+
+        initSelectors(); dataSync();
+    </script>
+
+</body></html>
